@@ -1,0 +1,20 @@
+services:
+  backend:
+    build: ./backend
+    container_name: saf-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./shared_data:/app/data:ro
+    environment:
+      - DATA_DIR=/app/data
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: saf-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
