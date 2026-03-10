@@ -3,7 +3,6 @@
 
     <header class="border-b border-gray-800 px-8 pt-8 pb-6">
       <h1 class="text-2xl font-bold tracking-tight">Sensor Dashboard</h1>
-      <p class="mt-1 text-sm text-gray-500">Real-time sensor measurement data</p>
     </header>
 
     <div v-if="loading" class="flex flex-col items-center justify-center py-24 text-gray-500">
