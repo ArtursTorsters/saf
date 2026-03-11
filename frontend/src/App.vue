@@ -1,7 +1,7 @@
 <template>
-  <SensorTable />
+  <RouterView />
 </template>
 
 <script setup lang="ts">
-import SensorTable from './components/SensorTable.vue'
+import { RouterView } from 'vue-router'
 </script>

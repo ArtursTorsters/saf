@@ -7,10 +7,7 @@
       </div>
     </header>
 
-    <div v-if="loading" class="flex flex-col items-center justify-center py-24 text-gray-500">
-      <div class="w-8 h-8 border-2 border-gray-800 border-t-white rounded-full animate-spin mb-4"></div>
-      <p>Loading sensor data...</p>
-    </div>
+    <SkeletonTable v-if="loading" />
 
     <div v-else-if="error" class="text-center py-16">
       <p class="text-lg font-medium text-gray-400 mb-2">Something went wrong</p>
@@ -178,6 +175,7 @@
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useSensors } from '../composables/useSensors'
+import SkeletonTable from './SkeletonTable.vue'
 
 const store = useSensors()
 const {
