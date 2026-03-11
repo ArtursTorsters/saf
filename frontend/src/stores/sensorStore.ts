@@ -9,7 +9,6 @@ export const useSensorStore = defineStore('sensors', () => {
   const loading = ref<boolean>(false)
   const error = ref<string | null>(null)
   const hasFetched = ref<boolean>(false)
-
   const searchQuery = ref<string>('')
   const selectedType = ref<string>('')
   const sortKey = ref<string>('name')

@@ -1,8 +1,10 @@
 <template>
   <div class="font-sans bg-black text-white min-h-screen">
 
-    <header class="border-b border-gray-800 px-8 pt-8 pb-6">
-      <h1 class="text-2xl font-bold tracking-tight">Sensor Dashboard</h1>
+    <header class="border-b border-gray-800">
+      <div class="max-w-screen-xl mx-auto px-6 pt-8 pb-6">
+        <h1 class="text-2xl font-bold tracking-tight">Sensor Dashboard</h1>
+      </div>
     </header>
 
     <div v-if="loading" class="flex flex-col items-center justify-center py-24 text-gray-500">

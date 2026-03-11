@@ -1,48 +1,31 @@
-"""
-Data Service — reads JSON files and merges sensor data into a flat,
-frontend-friendly format.
-
-This module is the core business logic layer. It:
-  1. Loads the 3 JSON files once at startup (cached in memory).
-  2. Merges sensors + metrics + sensorTypes into a single list.
-  3. Handles all missing-data edge cases gracefully.
-"""
+# loads JSON, merges sensors + metrics + types into a flat list
 
 import json
 import os
 from typing import Any
 
-# ── Path to the data directory (mounted via Docker volume) ──────────
 DATA_DIR = os.environ.get("DATA_DIR", os.path.join(os.path.dirname(__file__), "..", "data"))
 
 
+# read and parse a JSON file from data dir
 def _load_json(filename: str) -> dict:
-    """Read and parse a JSON file from the data directory."""
     filepath = os.path.join(DATA_DIR, filename)
     with open(filepath, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 class DataService:
-    """
-    Singleton-style service that loads JSON data once and provides
-    a merged, frontend-ready sensor list.
-    """
 
     def __init__(self) -> None:
-        # Raw data loaded from disk
         self._sensors_raw: dict = {}
         self._metrics_raw: list = []
         self._sensor_types_raw: dict = {}
 
-        # Processed / cached results
         self._metric_columns: list[str] = []
         self._metrics_lookup: dict[str, dict[str, Any]] = {}
 
-    # ── Loading ─────────────────────────────────────────────────────
-
+    # load all JSON files and build metrics lookup
     def load(self) -> None:
-        """Load all JSON files and pre-process metrics lookup."""
         self._sensors_raw = _load_json("sensors.json")
         self._sensor_types_raw = _load_json("sensorTypes.json")
 
@@ -51,13 +34,8 @@ class DataService:
 
         self._build_metrics_lookup()
 
+    # build metric_id -> column_name lookup
     def _build_metrics_lookup(self) -> None:
-        """
-        Build a lookup dict:  metric_id -> { "column_name": "Temperature (°C)", ... }
-
-        The column name is:  metric_name + " (" + active_unit_name + ")"
-        The "active" unit is the one with  selected: true.
-        """
         self._metrics_lookup = {}
         self._metric_columns = []
 
@@ -65,7 +43,7 @@ class DataService:
             metric_id = str(metric.get("id", ""))
             metric_name = metric.get("name", f"Metric {metric_id}")
 
-            # Find the active unit (the one with selected: true)
+
             units = metric.get("units", [])
             active_unit = next(
                 (u for u in units if u.get("selected")),
@@ -81,13 +59,8 @@ class DataService:
             }
             self._metric_columns.append(column_name)
 
-    # ── Public API ──────────────────────────────────────────────────
-
+    # lookup sensor type name by type_id + variant_id
     def get_sensor_type_name(self, type_id: Any, variant_id: Any) -> str:
-        """
-        Look up the human-readable sensor type name.
-        Returns "Unknown Type" if the type/variant combo is missing.
-        """
         type_str = str(type_id) if type_id is not None else ""
         variant_str = str(variant_id) if variant_id is not None else ""
 
@@ -95,40 +68,20 @@ class DataService:
         variant_entry = type_entry.get(variant_str, {})
         return variant_entry.get("name", "Unknown Type")
 
+    # return merged sensor list + metric column names
     def get_sensors(self) -> dict:
-        """
-        Return the merged sensor list + list of metric column names.
-
-        Response shape:
-        {
-            "sensors": [
-                {
-                    "id": "1048609",
-                    "name": "Sensor 1",
-                    "typeName": "T/RH Sensor",
-                    "type": 1,
-                    "metrics": {
-                        "Temperature (°C)": 21.80,
-                        "Humidity (%RH)": null
-                    }
-                },
-                ...
-            ],
-            "metricColumns": ["Temperature (°C)", "Humidity (%RH)", ...]
-        }
-        """
         sensors = []
 
         for sensor_id, sensor_data in self._sensors_raw.items():
-            # ── Handle missing sensor name ──
+
             name = sensor_data.get("name") or f"Unknown Sensor (ID: {sensor_id})"
 
-            # ── Handle missing sensor type ──
+
             sensor_type = sensor_data.get("type")
             sensor_variant = sensor_data.get("variant")
             type_name = self.get_sensor_type_name(sensor_type, sensor_variant)
 
-            # ── Build metrics dict with all columns (null for missing) ──
+
             sensor_metrics_raw = sensor_data.get("metrics", {})
             metrics_values: dict[str, float | None] = {}
 
