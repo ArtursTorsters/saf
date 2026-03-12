@@ -4,7 +4,14 @@ import json
 import os
 from typing import Any
 
-DATA_DIR = os.environ.get("DATA_DIR", os.path.join(os.path.dirname(__file__), "..", "data"))
+_app_data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
+_shared_data_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "shared_data"))
+
+_default_dir = _app_data_dir
+if not os.path.exists(os.path.join(_app_data_dir, "sensors.json")) and os.path.exists(os.path.join(_shared_data_dir, "sensors.json")):
+    _default_dir = _shared_data_dir
+
+DATA_DIR = os.environ.get("DATA_DIR", _default_dir)
 
 
 # read and parse a JSON file from data dir
